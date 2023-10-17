@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <QtWidgets>
 
 // Estructura de un punto en el tablero
 struct Point {
@@ -31,27 +32,56 @@ bool sendToServer(const std::string& serverAddress, int serverPort, const std::s
     return true;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     std::string serverAddress = "127.0.0.1";  // Dirección IP del servidor
     int serverPort = 12345;  // Puerto del servidor
 
-    // aqui va la lógica para crear el tablero y seleccionar puntos de inicio y destino.
+    QApplication app(argc, argv);
 
-    // Por ejemplo:
+    // Crear la ventana principal
+    QWidget window;
+    window.setWindowTitle("Samurai Stronghold GBP");
+
+    // Crear un layout de cuadrícula (10x10)
+    QGridLayout *gridLayout = new QGridLayout(&window);
+
     std::vector<Point> board;
     Point start = {0, 0};
     Point end = {9, 9};
 
-    // aqui va la lógica para convertir el tablero y los puntos en una cadena de datos.
+    // Función para enviar las coordenadas al servidor
+    auto sendCoordinatesToServer = [&serverAddress, serverPort](int row, int col) {
+        std::string coordinates = std::to_string(row) + "," + std::to_string(col);
+        if (sendToServer(serverAddress, serverPort, coordinates)) {
+            std::cout << "Coordenadas enviadas al servidor: " << coordinates << std::endl;
+        } else {
+            std::cerr << "Error al enviar coordenadas al servidor." << std::endl;
+        }
+    };
 
-    // Por ejemplo:
-    std::string data = "tablero_y_puntos_de_inicio_y_destino";
+    // Crear el tablero y agregar botones
+    for (int row = 0; row < 10; ++row) {
+        for (int col = 0; col < 10; ++col) {
+            QPushButton *button = new QPushButton(QString("%1,%2").arg(row).arg(col));
+            button->setFixedSize(70, 70);
+            gridLayout->addWidget(button, row, col);
 
-    if (sendToServer(serverAddress, serverPort, data)) {
-        std::cout << "Datos enviados al servidor con éxito." << std::endl;
-    } else {
-        std::cerr << "Error al enviar datos al servidor." << std::endl;
+            // Conectar el evento clic del botón a la función de envío de coordenadas
+            QObject::connect(button, &QPushButton::clicked, [row, col, &sendCoordinatesToServer]() {
+                sendCoordinatesToServer(row, col);
+            });
+
+            // Agregar lógica para marcar el punto de inicio y destino
+            if (row == start.y && col == start.x) {
+                button->setText("Inicio");
+            } else if (row == end.y && col == end.x) {
+                button->setText("Destino");
+            }
+        }
     }
 
-    return 0;
+    window.setLayout(gridLayout);
+    window.show();
+
+    return app.exec();
 }
