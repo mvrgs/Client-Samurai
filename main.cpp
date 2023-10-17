@@ -45,10 +45,6 @@ int main(int argc, char *argv[]) {
     // Crear un layout de cuadrícula (10x10)
     QGridLayout *gridLayout = new QGridLayout(&window);
 
-    std::vector<Point> board;
-    Point start = {0, 0};
-    Point end = {9, 9};
-
     // Función para enviar las coordenadas al servidor
     auto sendCoordinatesToServer = [&serverAddress, serverPort](int row, int col) {
         std::string coordinates = std::to_string(row) + "," + std::to_string(col);
@@ -62,7 +58,7 @@ int main(int argc, char *argv[]) {
     // Crear el tablero y agregar botones
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
-            QPushButton *button = new QPushButton(QString("%1,%2").arg(row).arg(col));
+            QPushButton *button = new QPushButton;
             button->setFixedSize(70, 70);
             gridLayout->addWidget(button, row, col);
 
@@ -70,17 +66,15 @@ int main(int argc, char *argv[]) {
             QObject::connect(button, &QPushButton::clicked, [row, col, &sendCoordinatesToServer]() {
                 sendCoordinatesToServer(row, col);
             });
-
-            // Agregar lógica para marcar el punto de inicio y destino
-            if (row == start.y && col == start.x) {
-                button->setText("Inicio");
-            } else if (row == end.y && col == end.x) {
-                button->setText("Destino");
-            }
         }
     }
 
-    window.setLayout(gridLayout);
+    // Crear un QLabel con la imagen del samurái
+    QLabel *samuraiLabel = new QLabel(&window);
+    QPixmap samuraiImage("/home/fernanda/Downloads/rojo.png");
+    samuraiLabel->setPixmap(samuraiImage);
+    samuraiLabel->setGeometry(10, 10, 70, 70);  // Ajusta la ubicación y tamaño del QLabel
+
     window.show();
 
     return app.exec();

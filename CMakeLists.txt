@@ -38,6 +38,8 @@ else()
     else()
         add_executable(Proyecto-2-Samurai
             ${PROJECT_SOURCES}
+            ../Downloads/rojo.png
+
         )
     endif()
 endif()
